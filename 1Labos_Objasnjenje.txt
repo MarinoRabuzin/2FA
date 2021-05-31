@@ -1,0 +1,47 @@
+------------------------------------------------- NACINA POKRETANJA -----------------------------------------------------------
+Moguce je pokrenuti preko terminala rucno upisivajuci main metode (pogledati UPUTA O UPORABI) moguca je i pokretanje
+pomocu shell scripte tako da se izvrse sve 3 naredbe (init, put, get) i pokrece se tako da se pozicionira u direktorij
+gdje je shell scripta run.sh upisivanjem u terminal ./run.sh masterpassword accountName accountPassword
+-------------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------UPUTA O UPORABI ---------------------------------------------------------------
+Za pokretanje potrebno je imati Javu 11 instaliranu.
+Raspakirati .zip datoteku unutar nekog direktorija te se u terminalu pozicionirati na putanju do raspakiranih podataka.
+
+Za inicijalizaciju datoteke tj. "password manager" potrebno je napisati:
+java CryptoMain init pass
+ispis: Password manager initalized."
+
+Za pohranjinvanje novih podataka u datoteku potrebno je napisati:
+java CryptoMain put pass marino rabuzin
+"Stored password for marino."
+
+Za dohvacanje sifre iz datoteke potrebno je napisati:
+"Password for marino is: rabuzin"
+
+Program parsira argumente koji se upisuju stoga ako je predano vise ili manje argumenata nego sto je potrebno ispisati
+ce se adekvatna poruka s primjerom kako bi upis trebao izgledati.
+--------------------------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------OPIS ENKRIPCIJE----------------------------------------------------------------------
+Ako je upisana init naredba tada se stvara datoteka u direktoriju u kojem smo pozicionirani s imenom Password_Manager.txt.
+Prilikom inicijalizacije tj. stvaranja datoteke generira se sigurni random byteovi za inicijalizacijski vektor koji je 
+velicine 16 byteova te se takoder generira sigurni random byteovi za salt koji se koristi enkripciju tj. zastitu same sifre
+i velicine je 1024 byteova. Tada se iz sifre koja je predana u init naredbi generira kljuc pomocu metode derivacije kljuca,
+velicine 256 byteova. Nakon toga pomocu generiranog deriviranog kljuca stvara se novi kljuc pomocu AES algoritma. Sa tim
+novim generiranom kljucem radi se enkripcija podataka tj. mape u kojoj su podatci na pocetku je u mapi samo jedan podataka
+kako bi se mapa enkriptirala(par u mapi ("test","test")) isto s AES algoritmom s modom CBC i paddingom PKCS5Padding. Nakon sto
+smo enkriptirali mapu racuna se HMac byteova mape te se pohranjuje njegovih 32 bytea nakon inicijalizacijskog vektora. HMac nam
+sluzi kako bih provjerili jesu li podatci mjenjani prilikom izvodenja bilo koje druge naredbe. Nakon Hmac byteova nalaze se
+enkriptirani podaci mape koji se kasnije dekriptiraju i citaju. Ako se upise kriva sifra(jer se i sazetak racuna s istim kljucem
+kao sto se i podatci enkriptiraju) ili su podaci promjenjeni ispisati ce se adekvatni ispis.
+Zbog takve enkripcije datoteka je zasticena od napada brute forceom i napade rainbow tablicom zbog derivacije kljuca. Takoder je
+zasticena od promjene podataka i ubacivanja novih podataka u datoteku zbog HMac provjere.
+---------------------------------------------------------------------------------------------------------------------------------
+
+--------- Password_Manager.txt ----------
+salt (1024 bytes)
+inicialization vector(16 bytes)
+HMac (32 bytes)
+encrypted data
+-----------------------------------------
